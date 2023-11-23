@@ -24,35 +24,42 @@ int main() {
   constexpr auto delim{";"sv};
   constexpr auto word_delim{" "sv};
   while(std::getline(std::cin, str)) {
+    /* std::cerr << str << std::endl; */
     std::string name;
     std::string color;
     std::string msg;
     int privmsg = -1;
-    for (const auto section : std::views::split(str, delim)) {
-      for (const auto word : std::views::split(section, word_delim)) {
-        auto wordsv = std::string_view(word);
-        if (wordsv.compare("PRIVMSG"sv) == 0 || privmsg == 0) {
-          privmsg += 1;
-          continue;
+    bool tags = false;
+    for (const auto word : std::views::split(str, word_delim)) {
+      auto wordsv = std::string_view(word);
+      if(!tags) {
+        tags = true;
+        for (const auto section : std::views::split(wordsv, delim)) {
+          auto sectionsv = std::string_view(section);
+          if (sectionsv.starts_with("display-name"sv)) {
+            sectionsv.remove_prefix(13);
+            name = sectionsv;
+          }
+          else if (sectionsv.starts_with("color"sv)) {
+            sectionsv.remove_prefix(6);
+            color = sectionsv;
+          }
         }
-        if(privmsg > 0) {
-          if (msg.size()) {
-            msg += " ";
-          }
-          else {
-            wordsv.remove_prefix(1);
-          }
-          msg += wordsv;
+        continue;
+      }
+      if (wordsv.compare("PRIVMSG"sv) == 0 || privmsg == 0) {
+        privmsg += 1;
+        continue;
+      }
+      if(privmsg > 0) {
+        if (msg.size()) {
+          msg += " ";
         }
         else {
-          if (wordsv.starts_with("display-name"sv)) {
-            wordsv.remove_prefix(13);
-            name = wordsv;
-          }
-          else if (wordsv.starts_with("color"sv)) {
-            wordsv.remove_prefix(6);
-            color = wordsv;
-          }
+          wordsv.remove_prefix(1);
+        }
+        if (wordsv.size()) {
+          msg += wordsv;
         }
       }
     }
