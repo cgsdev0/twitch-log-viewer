@@ -30,6 +30,7 @@ int main() {
 
   while (std::getline(std::cin, str)) {
     std::string name;
+    std::string time = "1970-01-01_00:00:00";
     std::string color;
     std::string msg;
     int privmsg = -1;
@@ -42,7 +43,10 @@ int main() {
         tags = true;
         for (const auto section : std::views::split(wordsv, delim)) {
           auto sectionsv = std::string_view(section);
-          if (sectionsv.starts_with("display-name"sv)) {
+          if (sectionsv.starts_with("time"sv)) {
+            sectionsv.remove_prefix(5);
+            time = sectionsv;
+          } else if (sectionsv.starts_with("display-name"sv)) {
             sectionsv.remove_prefix(13);
             name = sectionsv;
           } else if (sectionsv.starts_with("color"sv)) {
@@ -80,7 +84,7 @@ int main() {
         g = (colorhash >> 8) & 0xff;
         b = (colorhash >> 16) & 0xff;
       }
-      std::cout << "\x1b[38;2;" << r << ";" << g << ";" << b << "m";
+      std::cout << time << " \x1b[38;2;" << r << ";" << g << ";" << b << "m";
       std::cout << name << "\033[0m" << ": " << msg << "\n";
     }
   }
